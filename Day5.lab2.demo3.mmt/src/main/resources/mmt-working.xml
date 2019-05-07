@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:int="http://www.springframework.org/schema/integration"
+	xmlns:file="http://www.springframework.org/schema/integration/file"
+	xmlns:jms="http://www.springframework.org/schema/integration/jms"
+	xmlns:int-http="http://www.springframework.org/schema/integration/http"
+	xmlns:stream="http://www.springframework.org/schema/integration/stream"
+	xmlns:feed="http://www.springframework.org/schema/integration/feed"
+	xsi:schemaLocation="http://www.springframework.org/schema/integration/feed http://www.springframework.org/schema/integration/feed/spring-integration-feed.xsd
+        http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/integration/file http://www.springframework.org/schema/integration/file/spring-integration-file.xsd
+        http://www.springframework.org/schema/integration/jms http://www.springframework.org/schema/integration/jms/spring-integration-jms.xsd
+        http://www.springframework.org/schema/integration/http http://www.springframework.org/schema/integration/http/spring-integration-http.xsd
+        http://www.springframework.org/schema/integration/stream http://www.springframework.org/schema/integration/stream/spring-integration-stream.xsd
+        http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd">
+
+
+	<int:channel id="firstInputChannel" />
+	<int:channel id="airEnricher" />
+	<int:channel id="airInputChannel" />
+	<int:channel id="airOutputChannel" />
+	<int:channel id="jetEnricher" />
+	<int:channel id="jetInputChannel" />	
+	<int:channel id="jetOutputChannel" />
+	
+	<stream:stdin-channel-adapter
+		id="producer" channel="firstInputChannel" />
+	<int:recipient-list-router input-channel="firstInputChannel">
+		<int:recipient channel="airInputChannel" />
+		<int:recipient channel="jetInputChannel" />
+	</int:recipient-list-router>
+	
+	<int:header-enricher input-channel="airInputChannel" output-channel="airEnricher">
+		<int:header name="Accept" value="application/json" />
+		<int:header name="contentType" value="application/json" />
+	</int:header-enricher>
+	<int-http:outbound-gateway id="AirOutboundGateway" request-channel="airEnricher" reply-channel="airOutputChannel" url="http://localhost:8086/flights" http-method="GET" expected-response-type="java.lang.String"/>
+	<file:outbound-channel-adapter id="AirFile" channel="airOutputChannel" directory="/tmp/air" auto-create-directory="true" />
+			
+	<int:header-enricher input-channel="jetInputChannel" output-channel="jetEnricher">
+		<int:header name="Accept" value="application/json" />
+		<int:header name="contentType" value="application/json" />
+	</int:header-enricher>		
+	<int-http:outbound-gateway id="JetOutboundGateway" request-channel="jetEnricher" reply-channel="jetOutputChannel" url="http://localhost:8088/flights" http-method="GET" expected-response-type="java.lang.String"/>
+	<file:outbound-channel-adapter id="JetFile" channel="jetOutputChannel" directory="/tmp/jet" auto-create-directory="true" />
+
+	<int:poller default="true" id="defaultPoller" fixed-rate="1000" max-messages-per-poll="3" />
+
+</beans>

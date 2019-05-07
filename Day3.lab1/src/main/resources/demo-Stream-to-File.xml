@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:int="http://www.springframework.org/schema/integration"
+	xmlns:file="http://www.springframework.org/schema/integration/file"
+	xmlns:stream="http://www.springframework.org/schema/integration/stream"
+	xmlns:feed="http://www.springframework.org/schema/integration/feed"
+	xsi:schemaLocation="http://www.springframework.org/schema/integration/feed http://www.springframework.org/schema/integration/feed/spring-integration-feed.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/integration/file http://www.springframework.org/schema/integration/file/spring-integration-file.xsd
+		http://www.springframework.org/schema/integration/stream http://www.springframework.org/schema/integration/stream/spring-integration-stream.xsd
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd">
+
+
+<stream:stdin-channel-adapter id="producer" channel="mych" />
+<stream:stdout-channel-adapter id="consumer1" channel="mych" append-newline="true"/>
+<!--  <file:outbound-channel-adapter id="consumer2" directory="/tmp/output1" channel="mych" auto-create-directory="true" filename-generator-expression="'aa.txt'"/>-->
+<!-- <file:outbound-channel-adapter id="consumer2" directory="/tmp/output1" channel="mych" auto-create-directory="true" filename-generator-expression="'aa'+payload+'txt'"/> -->
+<file:outbound-channel-adapter id="consumer2" directory="/tmp/output1" channel="mych" auto-create-directory="true" filename-generator-expression="'aa'+new java.util.Date().geTime().toString()+'.txt'"/>
+<int:publish-subscribe-channel id="mych"></int:publish-subscribe-channel>   
+<int:poller default="true" id="defaultPoller" fixed-rate="1000" max-messages-per-poll="3"/>
+</beans>

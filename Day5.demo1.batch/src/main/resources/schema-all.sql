@@ -1,0 +1,14 @@
+DROP TABLE people IF EXISTS;
+
+CREATE TABLE people  (
+    first_name VARCHAR(20) PRIMARY KEY,
+    last_name VARCHAR(20)
+);
+
+
+DROP TABLE EMPLOYEE IF EXISTS;
+CREATE TABLE employee (
+  empno INTEGER IDENTITY PRIMARY KEY,
+  ename VARCHAR(30),
+  salary INTEGER
+);
